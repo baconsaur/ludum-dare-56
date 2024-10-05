@@ -6,6 +6,7 @@ export var room_center_pos : Vector2 = Vector2.ZERO
 export var contamination_chance = 0.6
 export var max_contamination_chance = 0.9
 export var growth_rate = 0.333
+export var clean_rate = 0.333
 
 var contamination_percent : float = 0.0
 var population : int = 0
@@ -19,6 +20,7 @@ onready var contamination_level = $CanvasLayer/HUD/Stats/ContaminationLevel
 onready var population_count = $CanvasLayer/HUD/Stats/PopulationCount
 onready var actions = $CanvasLayer/HUD/Actions
 onready var humans = $Humans
+onready var shower = $Shower
 
 
 func _ready():
@@ -34,8 +36,20 @@ func reject_human():
 	disable_actions()
 	incinerate_human()
 
-func disable_actions():
+func spray_human():
+	shower.emitting = true
+	disable_actions("SprayButton")
+	clean_human()
+
+func stop_spray():
+	shower.emitting = false
+	stop_clean()
+	enable_actions()
+
+func disable_actions(exclude=null):
 	for action in actions.get_children():
+		if exclude and action.name == exclude:
+			continue
 		(action as Button).disabled = true
 
 func enable_actions():
@@ -99,6 +113,14 @@ func exit_human():
 func incinerate_human():
 	var human : Human = human_queue[human_index]
 	human.incinerate()
+
+func clean_human():
+	var human : Human = human_queue[human_index]
+	human.clean()
+	
+func stop_clean():
+	var human : Human = human_queue[human_index]
+	human.stop_clean()
 
 func remove_human(human):
 	humans.remove_child(human)
