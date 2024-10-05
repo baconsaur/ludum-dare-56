@@ -8,6 +8,22 @@
 
 config_version=4
 
+_global_script_classes=[ {
+"base": "Node2D",
+"class": "Human",
+"language": "GDScript",
+"path": "res://scripts/Human.gd"
+}, {
+"base": "Node2D",
+"class": "Level",
+"language": "GDScript",
+"path": "res://scripts/Level.gd"
+} ]
+_global_script_class_icons={
+"Human": "",
+"Level": ""
+}
+
 [application]
 
 config/name="Ludum Dare 56"
