@@ -46,9 +46,11 @@ func enter():
 func exit():
 	move_pos(center_pos, exit_pos, "exited")
 
-func die():
-	pass
-	# TODO
+func incinerate():
+	var tween = get_node("Tween")
+	tween.interpolate_property(self, "modulate", Color.white, Color.red, move_duration)
+	tween.interpolate_callback(self, move_duration, "emit_signal", "dead")
+	tween.start()
 
 func move_pos(start, end, callback_signal):
 	var tween = get_node("Tween")

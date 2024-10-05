@@ -27,12 +27,12 @@ func _ready():
 
 #### PLAYER ACTIONS ####
 func accept_human():
-	print("accepted")
+	disable_actions()
 	exit_human()
 
 func reject_human():
-	print("rejected")
-	exit_human()
+	disable_actions()
+	incinerate_human()
 
 func disable_actions():
 	for action in actions.get_children():
@@ -50,6 +50,7 @@ func init_state():
 	for human in humans.get_children():
 		human.connect("exited", self, "next_human")
 		human.connect("entered", self, "enable_actions")
+		human.connect("dead", self, "remove_human", [human])
 	
 	if OS.is_debug_build():
 		level_index = debug_level
@@ -92,9 +93,21 @@ func enter_human():
 	human.enter()
 
 func exit_human():
-	disable_actions()
 	var human : Human = human_queue[human_index]
 	human.exit()
+
+func incinerate_human():
+	var human : Human = human_queue[human_index]
+	human.incinerate()
+
+func remove_human(human):
+	humans.remove_child(human)
+	human.queue_free()
+	update_population()
+	if humans.get_child_count() > 0:
+		next_human()
+	else:
+		game_over()
 
 func contaminate_human(human):
 	# TODO make this make sense
@@ -103,14 +116,14 @@ func contaminate_human(human):
 func recalculate_contamination():
 	var total_contam = 0
 	var valid_humans = 0
-	for human in human_queue:
+	for human in humans.get_children():
 		if is_instance_valid(human):
 			valid_humans += 1
 			total_contam += human.contamination_percent
-	print(total_contam)
-	print(valid_humans)
-	print(total_contam / valid_humans)
-	contamination_percent = total_contam / valid_humans * 100
+	if valid_humans:
+		contamination_percent = total_contam / valid_humans * 100
+	else:
+		contamination_percent = 0
 	update_contamination()
 
 func end_level():
@@ -128,8 +141,11 @@ func next_level():
 	level_index += 1
 		
 	if level_index >= levels.size():
-		print("Game over")
+		game_over()
 		return
 
 	load_level(levels[level_index])
 	enter_human()
+
+func game_over():
+	print("Game over")
