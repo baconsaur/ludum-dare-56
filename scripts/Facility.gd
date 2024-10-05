@@ -11,11 +11,12 @@ export var clean_rate = 0.333
 var contamination_percent : float = 0.0
 var population : int = 0
 
-var current_level : Node2D = null
+var current_level : Control = null
 var level_index = 0
 var human_queue : Array = []
 var human_index = 0
 
+onready var hud = $CanvasLayer/HUD
 onready var contamination_level = $CanvasLayer/HUD/Stats/ContaminationLevel
 onready var population_count = $CanvasLayer/HUD/Stats/PopulationCount
 onready var actions = $CanvasLayer/HUD/Actions
@@ -81,9 +82,11 @@ func update_population():
 
 func load_level(level):
 	if current_level:
+		hud.remove_child(current_level)
 		current_level.queue_free()
 	current_level = level.instance()
-	add_child(current_level)
+	hud.add_child(current_level)
+	current_level.connect("level_timeout", self, "level_timeout")
 	reset_humans()
 
 func reset_humans():
@@ -147,6 +150,15 @@ func recalculate_contamination():
 	else:
 		contamination_percent = 0
 	update_contamination()
+
+func level_timeout():
+	disable_actions()
+	for i in range(human_index, human_queue.size()):
+		var human : Human = human_queue[i]
+		print(human.name)
+		contaminate_human(human)
+	recalculate_contamination()
+	end_level()
 
 func end_level():
 	if contamination_percent:
