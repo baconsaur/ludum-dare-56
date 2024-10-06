@@ -5,8 +5,8 @@ export var debug_level : int = 0
 export var room_center_pos : Vector2 = Vector2.ZERO
 export var contamination_chance = 0.6
 export var max_contamination_chance = 0.9
-export var growth_rate = 0.333
-export var clean_rate = 0.333
+export var growth_rate = 0.3
+export var clean_rate = 0.3
 
 var contamination_percent : float = 0.0
 var population : int = 0
@@ -15,16 +15,22 @@ var current_level : Control = null
 var level_index = 0
 var human_queue : Array = []
 var human_index = 0
+var actions : Array = []
 
 onready var hud = $CanvasLayer/HUD
 onready var contamination_level = $CanvasLayer/HUD/Stats/ContaminationLevel
 onready var population_count = $CanvasLayer/HUD/Stats/PopulationCount
-onready var actions = $CanvasLayer/HUD/Actions
+onready var queue_size = $CanvasLayer/HUD/Stats/QueueSize
+onready var action_container = $CanvasLayer/HUD/Actions
 onready var humans = $Humans
 onready var shower = $Shower
+onready var anim_player = $AnimationPlayer
 
 
 func _ready():
+	randomize()
+	for child in action_container.get_children():
+		actions.append_array(child.get_children())
 	init_state()
 	enter_human()
 
@@ -47,14 +53,18 @@ func stop_spray():
 	stop_clean()
 	enable_actions()
 
+func check_malfunction():
+	if rand_range(0.4, 1.0) < contamination_percent:
+		anim_player.play("Flicker")
+
 func disable_actions(exclude=null):
-	for action in actions.get_children():
+	for action in actions:
 		if exclude and action.name == exclude:
 			continue
 		(action as Button).disabled = true
 
 func enable_actions():
-	for action in actions.get_children():
+	for action in actions:
 		(action as Button).disabled = false
 ########################
 
@@ -69,25 +79,29 @@ func init_state():
 	
 	if OS.is_debug_build():
 		level_index = debug_level
+		contamination_level.visible = true
 	load_level(levels[level_index])
 
 func update_contamination():
 	var display_format = "Contamination: %.1f%%"
-	contamination_level.text = display_format % contamination_percent
+	contamination_level.text = display_format % (contamination_percent * 100)
 
 func update_population():
 	population = humans.get_child_count()
 	var display_format = "Population: %d"
 	population_count.text = display_format % population
+	
+func update_queue_size():
+	var display_format = "Worker Queue: %s"
+	queue_size.text = display_format % (human_queue.size() - human_index - 1)
 
 func load_level(level):
-	if current_level:
-		hud.remove_child(current_level)
-		current_level.queue_free()
 	current_level = level.instance()
-	hud.add_child(current_level)
+	hud.call_deferred("add_child", current_level)
+	current_level.connect("set_actions", self, "set_actions")
 	current_level.connect("level_timeout", self, "level_timeout")
 	reset_humans()
+	anim_player.play("Tick")
 
 func reset_humans():
 	human_queue = humans.get_children()
@@ -97,7 +111,6 @@ func reset_humans():
 ###############
 
 func next_human():
-	recalculate_contamination()
 	human_index += 1
 	if human_index >= human_queue.size():
 		end_level()
@@ -105,6 +118,7 @@ func next_human():
 	enter_human()
 
 func enter_human():
+	update_queue_size()
 	var human : Human = human_queue[human_index]
 	contaminate_human(human)
 	human.enter()
@@ -146,34 +160,33 @@ func recalculate_contamination():
 			valid_humans += 1
 			total_contam += human.contamination_percent
 	if valid_humans:
-		contamination_percent = total_contam / valid_humans * 100
+		contamination_percent = total_contam / valid_humans
 	else:
 		contamination_percent = 0
 	update_contamination()
 
 func level_timeout():
 	disable_actions()
+	shower.emitting = false
 	for i in range(human_index, human_queue.size()):
 		var human : Human = human_queue[i]
 		print(human.name)
 		contaminate_human(human)
-	recalculate_contamination()
 	end_level()
 
 func end_level():
+	anim_player.stop()
+	current_level.display_review(min(human_index + 1, human_queue.size()))
+	current_level.connect("tree_exited", self, "next_level")
+
+func next_level():
 	if contamination_percent:
 		# Spread
 		for human in humans.get_children():
 			contaminate_human(human)
-		recalculate_contamination()
-			
-	print("Level complete")
-	# TODO level report
-	next_level()
+	recalculate_contamination()
 
-func next_level():
 	level_index += 1
-		
 	if level_index >= levels.size():
 		game_over()
 		return
@@ -183,3 +196,11 @@ func next_level():
 
 func game_over():
 	print("Game over")
+
+func set_actions(hide_actions):
+	for action in actions:
+		action.visible = true
+		for hide_action in hide_actions:
+			if hide_action in action.name:
+				action.visible = false
+
