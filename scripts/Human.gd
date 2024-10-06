@@ -52,7 +52,7 @@ func exit():
 	move_pos(center_pos, exit_pos, "exited")
 
 func update_particles():
-	var particle_count = round(max_particles * contamination_percent)
+	var particle_count = int(round(max_particles * contamination_percent))
 	contamination.amount = clamp(particle_count, 1, max_particles)
 	if particle_count <= 0:
 		contamination.emitting = false

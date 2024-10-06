@@ -1,51 +1,67 @@
 class_name Level
 extends Control
 
-signal level_timeout
-signal set_actions
+signal shift_timeout
+signal setup_complete
 
-export var time_limit : float = 90
-export(Array, String) var hide_actions
-
-var contaminated
-var complete = false
+var level_complete = false
+var shift_length = 0
+var elapsed_time = 0
 
 onready var time_label = $LevelTime
-onready var end_popup = $LevelEnd
-onready var report_text = $LevelEnd/MarginContainer/VBoxContainer/BodyText
-onready var level_time = time_limit
+onready var shift_review = $LevelEnd
+onready var report_text = $LevelEnd/MarginContainer/Contents/BodyText
+onready var shift_time = shift_length
 
 
 func _ready():
-	emit_signal("set_actions", hide_actions)
-	end_popup.visible = false
-	if time_limit:
-		time_label.visible = true
+	time_label.visible = false
+	shift_review.visible = false
+
+func setup(shift_length_value):
+	shift_length = shift_length_value
+	reset_shift()
 
 func _process(delta):
-	if complete:
+	elapsed_time += delta
+	if shift_time <= 0:
 		return
-	level_time -= delta
-	update_time()
-	if time_limit and level_time <= 0:
-		complete = true
-		emit_signal("level_timeout")
 
-func display_review(humans_processed):
-	var display_format = report_text.text
-	report_text.text = display_format % [format_seconds(time_limit - level_time), humans_processed]
+	shift_time -= delta
+	update_time()
+	if shift_length and shift_time <= 0:
+		emit_signal("shift_timeout")
+
+func reset_shift():
+	if level_complete:
+		queue_free()
+		return
+
+	if shift_length:
+		shift_time = shift_length
+		update_time()
+		time_label.visible = true
+	
+	elapsed_time = 0
+	shift_review.visible = false
+	emit_signal("setup_complete")
+
+func display_review(review_data):
+	review_data["Shift time"] = format_seconds(elapsed_time)
+	var review_lines = []
+	for key in review_data:
+		review_lines.append("%s: %s" % [key, review_data[key]])
+	
+	report_text.text = "\n".join(review_lines)
 	
 	time_label.visible = false
-	end_popup.visible = true
-
-func next_level():
-	queue_free()
+	shift_review.visible = true
 
 func update_time():
-	if not time_limit:
+	if not shift_length:
 		return
-	var display_format = "Time: %s"
-	time_label.text = display_format % format_seconds(level_time)
+	var display_format = "Shift time: %s"
+	time_label.text = display_format % format_seconds(shift_time)
 
 func format_seconds(total_seconds):
 	var seconds = clamp(fmod(total_seconds , 60.0), 0, 60)

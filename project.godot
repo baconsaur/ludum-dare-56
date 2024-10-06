@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Node",
+"class": "BaseLevel",
+"language": "GDScript",
+"path": "res://scripts/levels/BaseLevel.gd"
+}, {
 "base": "Node2D",
 "class": "Human",
 "language": "GDScript",
@@ -18,10 +23,17 @@ _global_script_classes=[ {
 "class": "Level",
 "language": "GDScript",
 "path": "res://scripts/Level.gd"
+}, {
+"base": "Node",
+"class": "LevelTrigger",
+"language": "GDScript",
+"path": "res://scripts/LevelTrigger.gd"
 } ]
 _global_script_class_icons={
+"BaseLevel": "",
 "Human": "",
-"Level": ""
+"Level": "",
+"LevelTrigger": ""
 }
 
 [application]
@@ -35,6 +47,7 @@ config/icon="res://icon.png"
 [autoload]
 
 IntegerResolutionHandler="*res://addons/integer_resolution_handler/integer_resolution_handler.gd"
+Globals="*res://scripts/Globals.gd"
 
 [display]
 

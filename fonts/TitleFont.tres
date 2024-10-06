@@ -3,4 +3,8 @@
 [ext_resource path="res://fonts/Capital_Hill.ttf" type="DynamicFontData" id=1]
 
 [resource]
+size = 8
+outline_size = 2
+outline_color = Color( 0.376471, 0.376471, 0.376471, 1 )
+extra_spacing_bottom = 2
 font_data = ExtResource( 1 )
