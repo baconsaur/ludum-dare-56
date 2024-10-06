@@ -10,6 +10,7 @@ export var spawn_pos : Vector2 = Vector2(180, 0)
 export var center_pos : Vector2 = Vector2.ZERO
 export var exit_pos : Vector2 = Vector2(-180, 0)
 export var move_duration : float = 1
+export var incinerate_time : float = 0.5
 export var max_particles : int = 20
 
 var contamination_percent : float = 0.0
@@ -52,14 +53,17 @@ func exit():
 	move_pos(center_pos, exit_pos, "exited")
 
 func update_particles():
+	if contamination_percent <= 0:
+		contamination.emitting = false
+		return
+
 	var particle_count = int(round(max_particles * contamination_percent))
 	contamination.amount = clamp(particle_count, 1, max_particles)
-	if particle_count <= 0:
-		contamination.emitting = false
 
 func incinerate():
 	combustion.emitting = true
-	tween.interpolate_property(sprite, "modulate", Color.white, Color(0, 0, 0, 0), move_duration / 5)
+	contamination.emitting = false
+	tween.interpolate_property(sprite, "modulate", Color.white, Color(0, 0, 0, 0), incinerate_time, Tween.TRANS_QUAD, Tween.EASE_IN)
 	tween.interpolate_callback(self, move_duration, "emit_signal", "dead")
 	tween.start()
 

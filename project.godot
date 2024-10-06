@@ -58,7 +58,7 @@ window/size/test_width=1920
 window/size/test_height=1080
 window/dpi/allow_hidpi=true
 window/stretch/mode="viewport"
-window/stretch/aspect="expand"
+window/stretch/aspect="keep_width"
 
 [editor_plugins]
 
@@ -90,5 +90,5 @@ quality/driver/driver_name="GLES2"
 vram_compression/import_etc=true
 vram_compression/import_etc2=false
 2d/options/ninepatch_mode=0
-environment/default_clear_color=Color( 0.329412, 0.243137, 0.329412, 1 )
+environment/default_clear_color=Color( 0.458824, 0.34902, 0.435294, 1 )
 environment/default_environment="res://default_env.tres"

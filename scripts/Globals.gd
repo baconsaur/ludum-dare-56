@@ -11,14 +11,16 @@ const level_data = [
 	{
 		"hide_actions": ["Reject"],
 		"script_name": "Level1",
-		"memo_text": "AAAAAAA"
+		"memo_text": "asdf"
 	},
 	{
 		"shift_length": 60,
 		"script_name": "Level2",
-		"memo_text": "sedfjihasdgs"
+		"memo_text": "ghjk"
 	}
 ]
+
+const game_over_text = "Game over lol"
 
 func get_contamination_chance(contamination_percent):
 	return clamp(contamination_percent + base_values["contamination_chance"], 0, base_values["max_contamination_chance"])

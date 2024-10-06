@@ -1,6 +1,7 @@
 extends Node2D
 
 export var level_scene : PackedScene
+export var human_obj : PackedScene
 export var debug_level : int = 0
 export var room_center_pos : Vector2 = Vector2.ZERO
 
@@ -14,9 +15,10 @@ var human_index = 0
 var actions : Array = []
 var shift_count = 0
 
-onready var hud = $CanvasLayer/HUD
-onready var memo = $CanvasLayer/HUD/Memo
-onready var memo_body = $CanvasLayer/HUD/Memo/MarginContainer/Contents/BodyText
+onready var hud = $CanvasLayer
+onready var memo = $CanvasLayer/Memo
+onready var memo_body = $CanvasLayer/Memo/MarginContainer/Contents/BodyText
+onready var memo_button = $CanvasLayer/Memo/MarginContainer/Contents/Button
 onready var queue_size = $CanvasLayer/HUD/Stats/ShiftStats/QueueSize
 onready var shift_counter = $CanvasLayer/HUD/Stats/ShiftStats/ShiftCounter
 onready var action_container = $CanvasLayer/HUD/Actions
@@ -24,6 +26,8 @@ onready var humans = $Humans
 onready var shower = $Shower
 onready var anim_player = $AnimationPlayer
 onready var level_conditions = $LevelConditions
+onready var door_in = $DoorIn
+onready var door_out = $DoorOut
 
 # DEBUG
 onready var debug_stats = $CanvasLayer/HUD/Stats/DebugStats
@@ -85,6 +89,7 @@ func reset_humans():
 	update_queue_size(human_queue.size())
 
 func next_human():
+	door_out.visible = true
 	human_index += 1
 	if human_index >= human_queue.size():
 		end_shift()
@@ -94,10 +99,12 @@ func next_human():
 func enter_human():
 	var human : Human = human_queue[human_index]
 	contaminate_human(human)
+	door_in.visible = false
 	human.enter()
 
 func exit_human():
 	var human : Human = human_queue[human_index]
+	door_out.visible = false
 	human.exit()
 
 func incinerate_human():
@@ -113,6 +120,7 @@ func stop_clean():
 	human.stop_clean()
 
 func human_entered():
+	door_in.visible = true
 	update_queue_size()
 	enable_actions()
 
@@ -223,7 +231,11 @@ func set_level_actions(hide_actions):
 				action.visible = false
 
 func game_over():
-	print("Game over")
+	memo_body.text = Globals.game_over_text
+	memo_button.text = "Replay"
+	memo_button.disconnect("pressed", self, "setup_level")
+	memo_button.connect("pressed", get_tree(), "reload_current_scene")
+	memo.visible = true
 ##########################
 
 

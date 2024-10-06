@@ -23,17 +23,12 @@ text = "10"
 visible = false
 
 [node name="Title" parent="LevelEnd/MarginContainer/Contents" index="0"]
-margin_left = 89.0
-margin_right = 190.0
+margin_left = 93.0
+margin_right = 194.0
 text = "Shift Performance"
 
 [node name="BodyText" parent="LevelEnd/MarginContainer/Contents" index="1"]
 text = ""
-
-[node name="Button" parent="LevelEnd/MarginContainer/Contents" index="2"]
-margin_left = 105.0
-margin_right = 174.0
-text = "Next Shift"
 
 [connection signal="pressed" from="LevelEnd/MarginContainer/Contents/Button" to="." method="reset_shift"]
 
