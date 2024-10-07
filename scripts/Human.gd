@@ -42,7 +42,7 @@ func contaminate(probability, growth_rate):
 func update_contamination(increment):
 	contamination_percent = clamp(contamination_percent + increment, 0, 1)
 	contamination.emitting = true
-#	display_contamination()
+	display_contamination()
 
 func interpolate(a, b, t):
 	return a + (b - a) * t
@@ -79,9 +79,9 @@ func stop_clean():
 	tween.stop(self)
 	tween.disconnect("tween_step", self, "display_contamination")
 
-#func display_contamination(_x=null, _y=null, _z=null, _w=null):
+func display_contamination(_x=null, _y=null, _z=null, _w=null):
 #	debug_label.text = "%.1f%%" % (contamination_percent * 100)
-#	update_particles()
+	update_particles()
 
 func move_pos(start, end, callback_signal):
 	var move_speed = interpolate(move_duration, max_move_duration, contamination_percent)

@@ -220,6 +220,7 @@ func shift_timeout():
 	for i in range(human_index, human_queue.size()):
 		var human : Human = human_queue[i]
 		contaminate_human(human)
+		human.tween.stop_all() # hack to fix a bug ugh
 	end_shift(true)
 
 func end_shift(timeout=false):
@@ -321,11 +322,12 @@ func set_level_actions(hide_actions):
 				action.visible = false
 
 func game_over(reason):
+	current_level.queue_free()
 	var end_report = [
 		Globals.game_over_text[reason],
-		"\nShifts completed: %d" % (shift_count - failed_shifts),
-		"\nFailed shifts: %d" % failed_shifts,
-		"\nTotal revenue: %d" % total_revenue,
+		"Shifts completed: %d" % (shift_count - failed_shifts),
+		"Failed shifts: %d" % failed_shifts,
+		"Total revenue: %d credits" % total_revenue,
 	]
 	if reason != "humans_dead":
 		end_report.append_array([
