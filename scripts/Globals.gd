@@ -1,8 +1,8 @@
 extends Node
 
 var base_values = {
-	"contamination_chance": 0.6,
-	"growth_rate": 0.15,
+	"contamination_chance": 0.75,
+	"growth_rate": 0.3,
 	"clean_rate": 0.2,
 	"new_worker_interval": 3,
 	"worker_batch_size": 5,
@@ -11,7 +11,7 @@ var base_values = {
 	"minimum_efficiency": 0.6,
 	"worker_revenue": 10,
 	"worker_upkeep": 7,
-	"max_failed_shifts": 5,
+	"max_failed_shifts": 3,
 }
 
 var level_data = [
@@ -27,17 +27,17 @@ var level_data = [
 		"memo_text": "Congratulations on completing your first shift!\n\nTo help us maximize the efficiency of our operation, a timer has been added to your station.\n\nPlease make sure to complete your work within the time limit.",
 	},
 	{
-		"shift_length": 75,
+		"shift_length": 70,
 		"script_name": "Level3",
 		"memo_text": "Your station has been upgraded with a new feature!\n\nTo help you succeed, you may reject workers who will be a burden on the system. Please make sure to meet your new revenue goal of 2000 credits per shift.",
-		"revenue_goal": 2000,
+		"revenue_goal": 2500,
 	},
 	{
 		"shift_length": 80,
 		"script_name": "Level4",
 		"memo_text": "Due to budget cuts, decontamination fluid will be rationed until further notice.\n\nPlease monitor the level of fluid carefully and avoid non-essential use.",
 		"fluid_meter": true,
-		"revenue_goal": 2400,
+		"revenue_goal": 3000,
 	},
 ]
 

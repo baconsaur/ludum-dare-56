@@ -63,7 +63,7 @@ func display_review(review_data, next_shift, timeout, malfunction):
 	for key in review_data:
 		review_lines.append("%s: %s" % [key, review_data[key]])
 
-	var alerts = ["\nAlerts:"]
+	var alerts = ["Alerts:"]
 	if next_shift % Globals.base_values.get("new_worker_interval") == 0:
 		alerts.append("%s new workers have arrived" % Globals.base_values.get("worker_batch_size"))
 	
