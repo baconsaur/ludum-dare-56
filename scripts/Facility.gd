@@ -62,11 +62,11 @@ func init_state():
 	add_human_batch()
 	debug_update_contamination()
 	
-	if OS.is_debug_build():
-		level_index = debug_level
-		debug_stats.visible = true
-	else:
-		debug_stats.visible = false
+#	if OS.is_debug_build():
+#		level_index = debug_level
+#		debug_stats.visible = true
+#	else:
+#		debug_stats.visible = false
 ###############
 
 

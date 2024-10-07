@@ -74,6 +74,7 @@ position = Vector2( 0, 13 )
 stream = ExtResource( 3 )
 
 [node name="Debug" type="Label" parent="."]
+visible = false
 anchor_left = 0.5
 anchor_right = 0.5
 margin_left = -20.0

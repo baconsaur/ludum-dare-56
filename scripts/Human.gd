@@ -27,12 +27,12 @@ onready var debug_label = $Debug
 func _ready():
 	randomize()
 	contamination.emitting = false
-	debug_label.visible = OS.is_debug_build()
+#	debug_label.visible = OS.is_debug_build()
 
 func reset():
 	position = spawn_pos
-	if OS.is_debug_build():
-		update_contamination(Globals.base_values.get("initial_contamination", 0))
+#	if OS.is_debug_build():
+#		update_contamination(Globals.base_values.get("initial_contamination", 0))
 
 func contaminate(probability, growth_rate):
 	if contamination_percent <= 0 and rand_range(0.0, 1.0) >= probability:
@@ -42,7 +42,7 @@ func contaminate(probability, growth_rate):
 func update_contamination(increment):
 	contamination_percent = clamp(contamination_percent + increment, 0, 1)
 	contamination.emitting = true
-	display_contamination()
+#	display_contamination()
 
 func interpolate(a, b, t):
 	return a + (b - a) * t
@@ -79,9 +79,9 @@ func stop_clean():
 	tween.stop(self)
 	tween.disconnect("tween_step", self, "display_contamination")
 
-func display_contamination(_x=null, _y=null, _z=null, _w=null):
-	debug_label.text = "%.1f%%" % (contamination_percent * 100)
-	update_particles()
+#func display_contamination(_x=null, _y=null, _z=null, _w=null):
+#	debug_label.text = "%.1f%%" % (contamination_percent * 100)
+#	update_particles()
 
 func move_pos(start, end, callback_signal):
 	var move_speed = interpolate(move_duration, max_move_duration, contamination_percent)
