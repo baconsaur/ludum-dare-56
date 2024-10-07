@@ -17,7 +17,7 @@ var shift_count = 0
 var fluid_percent = 100
 var malfunction_shift = false
 
-onready var hud = $CanvasLayer
+onready var hud = $CanvasLayer/LevelContainer
 onready var memo = $CanvasLayer/Memo
 onready var memo_body = $CanvasLayer/Memo/MarginContainer/Contents/BodyText
 onready var memo_button = $CanvasLayer/Memo/MarginContainer/Contents/Button
@@ -32,6 +32,8 @@ onready var level_conditions = $LevelConditions
 onready var door_in = $DoorIn
 onready var door_out = $DoorOut
 onready var tween = $Tween
+onready var aberration = $CanvasLayer/Aberration
+onready var inner_contam = $CanvasLayer/Contaminants
 
 # DEBUG
 onready var debug_stats = $CanvasLayer/HUD/Stats/DebugStats
@@ -180,6 +182,16 @@ func check_malfunction():
 		return
 	if rand_range(0, 1.0) < contamination_percent:
 		anim_player.play("Flicker")
+
+func display_sanity():
+	if contamination_percent <= 0:
+		aberration.stop()
+		inner_contam.emitting = false
+		return
+		
+	aberration.set_spread(contamination_percent)
+	inner_contam.emitting = true
+	inner_contam.amount = 30 * contamination_percent
 #############################
 
 
@@ -218,11 +230,12 @@ func end_shift(timeout=false):
 func start_shift():
 	shift_count += 1
 	update_shift()
+	display_sanity()
 	
 	if shift_count % Globals.base_values.get("new_worker_interval") == 0:
 		add_human_batch()
 		recalculate_contamination()
-		
+	
 	fluid_meter.value = 100
 	if malfunction_shift:
 		anim_player.play("Tick")

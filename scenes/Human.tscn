@@ -7,8 +7,8 @@
 _data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 0.5, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
 
 [sub_resource type="Gradient" id=1]
-offsets = PoolRealArray( 0, 0.345361, 0.551546, 1 )
-colors = PoolColorArray( 0.54902, 0.294118, 0.388235, 0.909804, 0.164706, 0.0784314, 0.239216, 1, 0.392157, 0.207843, 0.32549, 0, 0.254902, 0.188235, 0.278431, 0 )
+offsets = PoolRealArray( 0.270619, 0.592784 )
+colors = PoolColorArray( 0.164706, 0.0784314, 0.239216, 0.854902, 0.54902, 0.294118, 0.388235, 0 )
 
 [sub_resource type="Curve" id=2]
 _data = [ Vector2( 0.73399, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
