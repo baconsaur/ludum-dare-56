@@ -34,6 +34,8 @@ onready var door_out = $DoorOut
 onready var tween = $Tween
 onready var aberration = $CanvasLayer/Aberration
 onready var inner_contam = $CanvasLayer/Contaminants
+onready var shower_sound = $ShowerSound
+onready var master_sound = AudioServer.get_bus_index("Master")
 
 # DEBUG
 onready var debug_stats = $CanvasLayer/HUD/Stats/DebugStats
@@ -80,6 +82,7 @@ func spray_human():
 		tween.interpolate_callback(self, time_to_empty, "disable_spray")
 		tween.start()
 	shower.emitting = true
+	shower_sound.play()
 	disable_actions("SprayButton")
 	clean_human()
 
@@ -89,6 +92,7 @@ func disable_spray():
 
 func stop_spray():
 	tween.stop_all()
+	shower_sound.stop()
 	shower.emitting = false
 	stop_clean()
 	enable_actions()
@@ -358,3 +362,9 @@ func update_shift():
 	var display_format = "Shift: %s"
 	shift_counter.text = display_format % shift_count
 ###############
+
+func toggle_audio(button_pressed):
+	if button_pressed:
+		AudioServer.set_bus_mute(master_sound, true)
+	else:
+		AudioServer.set_bus_mute(master_sound, false)

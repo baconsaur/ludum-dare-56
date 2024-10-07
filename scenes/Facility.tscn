@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=2]
+[gd_scene load_steps=33 format=2]
 
 [ext_resource path="res://scripts/Facility.gd" type="Script" id=1]
 [ext_resource path="res://fonts/UITheme.tres" type="Theme" id=2]
@@ -16,6 +16,14 @@
 [ext_resource path="res://sprites/fluid_fill.png" type="Texture" id=14]
 [ext_resource path="res://sprites/Aberration.gdshader" type="Shader" id=15]
 [ext_resource path="res://scripts/Aberration.gd" type="Script" id=16]
+[ext_resource path="res://sound/ambient.wav" type="AudioStream" id=17]
+[ext_resource path="res://sound/click.wav" type="AudioStream" id=18]
+[ext_resource path="res://sound/click_u.wav" type="AudioStream" id=19]
+[ext_resource path="res://sound/click_d.wav" type="AudioStream" id=20]
+[ext_resource path="res://sound/shower.wav" type="AudioStream" id=21]
+[ext_resource path="res://sound/door.wav" type="AudioStream" id=22]
+[ext_resource path="res://sprites/audio_on.png" type="Texture" id=23]
+[ext_resource path="res://sprites/audio_off.png" type="Texture" id=24]
 
 [sub_resource type="Curve" id=8]
 _data = [ Vector2( 0, 0.72973 ), 0.0, 0.0, 0, 0, Vector2( 0.18578, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
@@ -253,6 +261,15 @@ margin_bottom = 16.0
 disabled = true
 text = "Spray"
 
+[node name="Click" type="AudioStreamPlayer2D" parent="CanvasLayer/HUD/Actions"]
+stream = ExtResource( 18 )
+
+[node name="ClickDown" type="AudioStreamPlayer2D" parent="CanvasLayer/HUD/Actions"]
+stream = ExtResource( 20 )
+
+[node name="ClickUp" type="AudioStreamPlayer2D" parent="CanvasLayer/HUD/Actions"]
+stream = ExtResource( 19 )
+
 [node name="FluidMeter" type="TextureProgress" parent="CanvasLayer/HUD"]
 margin_left = 266.0
 margin_top = 161.0
@@ -285,6 +302,15 @@ margin_bottom = 0.0
 
 [node name="BodyText" parent="CanvasLayer/Memo/MarginContainer/Contents" index="0"]
 text = "!"
+
+[node name="ToggleAudio" type="TextureButton" parent="CanvasLayer"]
+anchor_top = 1.0
+anchor_bottom = 1.0
+margin_top = -16.0
+margin_right = 16.0
+toggle_mode = true
+texture_normal = ExtResource( 23 )
+texture_pressed = ExtResource( 24 )
 
 [node name="Contaminants" type="CPUParticles2D" parent="CanvasLayer"]
 position = Vector2( 160, 186 )
@@ -368,11 +394,31 @@ flip_h = true
 
 [node name="Tween" type="Tween" parent="."]
 
+[node name="Ambient" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 17 )
+volume_db = -2.5
+autoplay = true
+bus = "Music"
+
+[node name="ShowerSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 21 )
+volume_db = -10.0
+
+[node name="DoorSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 22 )
+volume_db = -10.0
+
+[connection signal="button_down" from="CanvasLayer/HUD/Actions/Row2/AcceptButton" to="CanvasLayer/HUD/Actions/Click" method="play"]
 [connection signal="pressed" from="CanvasLayer/HUD/Actions/Row2/AcceptButton" to="." method="accept_human"]
+[connection signal="button_down" from="CanvasLayer/HUD/Actions/Row2/RejectButton" to="CanvasLayer/HUD/Actions/Click" method="play"]
 [connection signal="pressed" from="CanvasLayer/HUD/Actions/Row2/RejectButton" to="." method="reject_human"]
 [connection signal="button_down" from="CanvasLayer/HUD/Actions/Row1/SprayButton" to="." method="spray_human"]
+[connection signal="button_down" from="CanvasLayer/HUD/Actions/Row1/SprayButton" to="CanvasLayer/HUD/Actions/ClickDown" method="play"]
 [connection signal="button_up" from="CanvasLayer/HUD/Actions/Row1/SprayButton" to="." method="stop_spray"]
-[connection signal="visibility_changed" from="CanvasLayer/Memo/MarginContainer/Contents/BodyText" to="CanvasLayer/Memo/MarginContainer/Contents/BodyText" method="visibility_changed"]
+[connection signal="button_up" from="CanvasLayer/HUD/Actions/Row1/SprayButton" to="CanvasLayer/HUD/Actions/ClickUp" method="play"]
 [connection signal="pressed" from="CanvasLayer/Memo/MarginContainer/Contents/Button" to="." method="setup_level"]
+[connection signal="toggled" from="CanvasLayer/ToggleAudio" to="." method="toggle_audio"]
+[connection signal="visibility_changed" from="DoorOut" to="DoorSound" method="play"]
+[connection signal="visibility_changed" from="DoorIn" to="DoorSound" method="play"]
 
 [editable path="CanvasLayer/Memo"]

@@ -7,8 +7,12 @@ signal setup_complete
 var level_complete = false
 var shift_length = 0
 var elapsed_time = 0
+var alert_time = 10
+var alarm_played = false
 
 onready var time_label = $MarginContainer/LevelTime
+onready var time_alarm = $TimeAlarm
+onready var anim_player = $AnimationPlayer
 onready var shift_review = $LevelEnd
 onready var report_text = $LevelEnd/MarginContainer/Contents/BodyText
 onready var shift_time = shift_length
@@ -29,6 +33,9 @@ func _process(delta):
 
 	shift_time -= delta
 	update_time()
+	if not alarm_played and shift_time <= alert_time:
+		anim_player.play("TimeAlert")
+		alarm_played = true
 	if shift_length and shift_time <= 0:
 		emit_signal("shift_timeout")
 
@@ -43,6 +50,8 @@ func reset_shift():
 		time_label.visible = true
 	
 	elapsed_time = 0
+	alarm_played = false
+	anim_player.play("RESET")
 	shift_review.visible = false
 	emit_signal("setup_complete")
 

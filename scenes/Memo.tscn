@@ -1,8 +1,11 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://scripts/ScreenText.gd" type="Script" id=1]
 [ext_resource path="res://fonts/UITheme.tres" type="Theme" id=2]
 [ext_resource path="res://sprites/yw_logo.png" type="Texture" id=3]
+[ext_resource path="res://sound/click.wav" type="AudioStream" id=4]
+[ext_resource path="res://sound/system_beep.wav" type="AudioStream" id=5]
+[ext_resource path="res://scripts/Memo.gd" type="Script" id=6]
 
 [sub_resource type="StyleBoxFlat" id=1]
 bg_color = Color( 0.105882, 0.0666667, 0.172549, 1 )
@@ -16,6 +19,7 @@ margin_right = 320.0
 margin_bottom = 180.0
 theme = ExtResource( 2 )
 custom_styles/panel = SubResource( 1 )
+script = ExtResource( 6 )
 
 [node name="Border" type="NinePatchRect" parent="."]
 anchor_right = 1.0
@@ -61,6 +65,9 @@ margin_bottom = 162.0
 size_flags_horizontal = 4
 text = "Continue"
 
+[node name="Click" type="AudioStreamPlayer2D" parent="MarginContainer/Contents/Button"]
+stream = ExtResource( 4 )
+
 [node name="TextureRect" type="TextureRect" parent="."]
 anchor_left = 0.5
 anchor_top = 0.5
@@ -72,4 +79,9 @@ margin_right = 54.5
 margin_bottom = 41.0
 texture = ExtResource( 3 )
 
+[node name="Beep" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 5 )
+
+[connection signal="visibility_changed" from="." to="." method="play_beep"]
 [connection signal="visibility_changed" from="MarginContainer/Contents/BodyText" to="MarginContainer/Contents/BodyText" method="visibility_changed"]
+[connection signal="button_down" from="MarginContainer/Contents/Button" to="MarginContainer/Contents/Button/Click" method="play"]

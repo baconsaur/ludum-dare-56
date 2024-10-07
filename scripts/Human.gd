@@ -20,6 +20,7 @@ onready var sprite : Sprite = $Sprite
 onready var tween : Tween = $Tween
 onready var contamination : CPUParticles2D = $Contamination
 onready var combustion : CPUParticles2D = $Combustion
+onready var burn_sound = $Burn
 
 
 func _ready():
@@ -67,6 +68,7 @@ func update_particles():
 	contamination.amount = clamp(particle_count, 1, max_particles)
 
 func incinerate():
+	burn_sound.play()
 	combustion.emitting = true
 	contamination.emitting = false
 	tween.interpolate_property(sprite, "modulate", Color.white, Color(0, 0, 0, 0), incinerate_time, Tween.TRANS_QUINT, Tween.EASE_IN)

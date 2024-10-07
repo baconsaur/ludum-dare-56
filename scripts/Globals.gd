@@ -25,7 +25,7 @@ const level_data = [
 	{
 		"shift_length": 60,
 		"script_name": "Level3",
-		"memo_text": "Your station has been upgraded with a new feature!\nTo help you succeed at reaching your new time goal, you may reject workers who require excessive use of resources.",
+		"memo_text": "Your station has been upgraded with a new feature!\n\nTo help you succeed at reaching your new time goal, you may reject workers who require excessive use of resources.",
 	},
 	{
 		"shift_length": 60,
@@ -43,6 +43,6 @@ const level_data = [
 
 const game_over_text = {
 	"complete": "good jorb",
-	"humans_dead": "All the workers are dead, so we no longer require your services.",
+	"humans_dead": "All the workers are dead. Yeyland-Wutani no longer requires your services.",
 	"fired": "you suck at this",
 }
