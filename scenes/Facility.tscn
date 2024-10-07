@@ -77,7 +77,7 @@ tracks/0/keys = {
 
 [sub_resource type="Animation" id=3]
 resource_name = "Tick"
-length = 5.0
+length = 3.0
 loop = true
 tracks/0/type = "method"
 tracks/0/path = NodePath(".")
@@ -86,7 +86,7 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 5 ),
+"times": PoolRealArray( 3 ),
 "transitions": PoolRealArray( 1 ),
 "values": [ {
 "args": [  ],
@@ -181,7 +181,7 @@ margin_bottom = 26.0
 size_flags_horizontal = 3
 
 [node name="PopulationCount" type="Label" parent="CanvasLayer/HUD/Stats/DebugStats"]
-margin_right = 67.0
+margin_right = 96.0
 margin_bottom = 10.0
 size_flags_horizontal = 3
 size_flags_vertical = 0
@@ -190,8 +190,8 @@ text = "Population: 0"
 align = 1
 
 [node name="ContaminationLevel" type="Label" parent="CanvasLayer/HUD/Stats/DebugStats"]
-margin_left = 75.0
-margin_right = 161.0
+margin_left = 104.0
+margin_right = 200.0
 margin_bottom = 10.0
 size_flags_horizontal = 3
 size_flags_vertical = 0
@@ -200,6 +200,7 @@ text = "Contamination: 0.0%"
 align = 1
 
 [node name="CurrentLevel" type="Label" parent="CanvasLayer/HUD/Stats/DebugStats"]
+visible = false
 margin_left = 169.0
 margin_right = 236.0
 margin_bottom = 10.0
@@ -210,13 +211,18 @@ text = "Level: 0"
 align = 1
 
 [node name="ShiftCounter" type="Label" parent="CanvasLayer/HUD/Stats/DebugStats"]
-margin_left = 244.0
-margin_right = 312.0
+margin_left = 208.0
+margin_right = 304.0
 margin_bottom = 10.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 5 )
 text = "Shift: %s"
 align = 1
+
+[node name="Efficiency" type="Label" parent="CanvasLayer/HUD/Stats/DebugStats"]
+margin_left = 312.0
+margin_right = 312.0
+margin_bottom = 10.0
 
 [node name="Actions" type="VBoxContainer" parent="CanvasLayer/HUD"]
 margin_left = 4.0

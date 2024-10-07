@@ -51,22 +51,27 @@ func reset_shift():
 	
 	elapsed_time = 0
 	alarm_played = false
-	anim_player.play("RESET")
 	shift_review.visible = false
 	emit_signal("setup_complete")
 
 func display_review(review_data, next_shift, timeout, malfunction):
+	alarm_played = true
+	anim_player.play("RESET")
 	review_data["Time taken"] = format_seconds(elapsed_time)
-	var review_lines = ["Performance Review\n"]
+	var review_lines = ["Performance Review:"]
 
 	for key in review_data:
 		review_lines.append("%s: %s" % [key, review_data[key]])
 
+	var alerts = ["\nAlerts:"]
 	if next_shift % Globals.base_values.get("new_worker_interval") == 0:
-		review_lines.append("\nAlert: %s new workers have arrived" % Globals.base_values.get("worker_batch_size"))
+		alerts.append("%s new workers have arrived" % Globals.base_values.get("worker_batch_size"))
 	
 	if malfunction:
-		review_lines.append("\nAlert: system malfunctions reported")
+		alerts.append("reports of system malfunctions due to high contaminant levels")
+	
+	if alerts.size() > 1:
+		review_lines.append("\n".join(alerts))
 	
 	report_text.text = "\n".join(review_lines)
 	

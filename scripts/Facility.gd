@@ -7,6 +7,7 @@ export var room_center_pos : Vector2 = Vector2.ZERO
 
 var contamination_percent : float = 0.0
 var population : int = 0
+var efficiency : float = 1
 
 var current_level : Control = null
 var level_index = 0
@@ -16,6 +17,8 @@ var actions : Array = []
 var shift_count = 0
 var fluid_percent = 100
 var malfunction_shift = false
+var failed_shifts = 0
+var total_revenue = 0
 
 onready var hud = $CanvasLayer/LevelContainer
 onready var memo = $CanvasLayer/Memo
@@ -43,6 +46,7 @@ onready var contamination_level = $CanvasLayer/HUD/Stats/DebugStats/Contaminatio
 onready var population_count = $CanvasLayer/HUD/Stats/DebugStats/PopulationCount
 onready var level_count = $CanvasLayer/HUD/Stats/DebugStats/CurrentLevel
 onready var shift_counter = $CanvasLayer/HUD/Stats/DebugStats/ShiftCounter
+onready var efficiency_counter = $CanvasLayer/HUD/Stats/DebugStats/Efficiency
 
 
 func _ready():
@@ -78,6 +82,7 @@ func reject_human():
 func spray_human():
 	if fluid_meter.visible:
 		var time_to_empty = Globals.base_values["fluid_capacity"] * fluid_meter.value / 100
+		print(time_to_empty)
 		tween.interpolate_property(fluid_meter, "value", fluid_meter.value, 0, time_to_empty)
 		tween.interpolate_callback(self, time_to_empty, "disable_spray")
 		tween.start()
@@ -105,6 +110,7 @@ func reset_humans():
 	for human in human_queue:
 		human.reset()
 	human_index = 0
+	human_queue.shuffle()
 	update_queue_size(human_queue.size())
 
 func next_human():
@@ -175,10 +181,16 @@ func contaminate_human(human, chance=Globals.base_values["contamination_chance"]
 	)
 
 func spread_contamination():
-	if contamination_percent:
-		for human in humans.get_children():
-			if human.contamination_percent <= 0:
-				contaminate_human(human, contamination_percent)
+	# Take the average % of all contaminated workers and make that the minimum
+	var human_instances = humans.get_children()
+	var total_contamination = 0
+	for human in human_instances:
+		total_contamination += human.contamination_percent
+	var average_contamination = total_contamination / human_instances.size()
+	
+	for human in human_instances:
+		human.contamination_percent = max(average_contamination, human.contamination_percent)
+
 	recalculate_contamination()
 
 func check_malfunction():
@@ -195,12 +207,14 @@ func display_sanity():
 		
 	aberration.set_spread(contamination_percent)
 	inner_contam.emitting = true
-	inner_contam.amount = 30 * contamination_percent
+	inner_contam.amount = 20 * contamination_percent
 #############################
 
 
 #### SHIFT MANAGEMENT ####
 func shift_timeout():
+	# TODO wait if someone is in the process of exiting
+	failed_shifts += 1
 	disable_actions()
 	shower.emitting = false
 	for i in range(human_index, human_queue.size()):
@@ -215,9 +229,19 @@ func end_shift(timeout=false):
 	anim_player.seek(0)
 	recalculate_contamination()
 	
+	var revenue = calculate_revenue()
+	var revenue_string = "%d credits" % revenue
+	var revenue_goal = Globals.level_data[level_index].get("revenue_goal")
+	if revenue_goal:
+		revenue_string = "%d/%d credits" % [revenue, revenue_goal]
+		if not timeout and revenue < revenue_goal:
+			failed_shifts += 1
+	total_revenue += revenue
+	
 	var workers_processed = human_index
 	var review_data = {
 		"Time taken": "",
+		"Shift revenue": revenue_string,
 		"Workers processed": workers_processed,
 	}
 	if timeout:
@@ -273,6 +297,9 @@ func display_memo():
 	memo.visible = true
 
 func setup_level():
+	if failed_shifts >= Globals.base_values.get("max_failed_shifts"):
+		game_over("fired")
+		return
 	memo.visible = false
 	var level_data = Globals.level_data[level_index]
 	set_level_actions(level_data.get("hide_actions", []))
@@ -296,7 +323,9 @@ func set_level_actions(hide_actions):
 func game_over(reason):
 	var end_report = [
 		Globals.game_over_text[reason],
-		"\nShifts completed: %d" % shift_count,
+		"\nShifts completed: %d" % (shift_count - failed_shifts),
+		"\nFailed shifts: %d" % failed_shifts,
+		"\nTotal revenue: %d" % total_revenue,
 	]
 	if reason != "humans_dead":
 		end_report.append_array([
@@ -337,6 +366,16 @@ func recalculate_contamination():
 		contamination_percent = 0
 
 	debug_update_contamination()
+
+func calculate_revenue():
+	var total = 0
+	var human_objs = humans.get_children()
+	var worker_upkeep = Globals.base_values.get("worker_upkeep", 0)
+	var worker_revenue = Globals.base_values.get("worker_revenue", 0)
+	for human in human_objs:
+		total += (1 - human.contamination_percent) * worker_revenue - worker_upkeep
+	
+	return total * 100
 
 func debug_update_contamination():
 	var display_format = "Contamination: %.1f%%"
