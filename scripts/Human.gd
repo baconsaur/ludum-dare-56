@@ -10,8 +10,9 @@ export var spawn_pos : Vector2 = Vector2(180, 0)
 export var center_pos : Vector2 = Vector2.ZERO
 export var exit_pos : Vector2 = Vector2(-180, 0)
 export var move_duration : float = 1
+export var max_move_duration : float = 3
 export var incinerate_time : float = 0.5
-export var max_particles : int = 20
+export var max_particles : int = 10
 
 var contamination_percent : float = 0.0
 
@@ -35,16 +36,21 @@ func decontaminate(value):
 	update_particles()
 
 func contaminate(probability, growth_rate):
-	if contamination_percent:
-		contamination_percent = clamp(contamination_percent + growth_rate, 0, 1)
-	elif rand_range(0.0, 1.0) < probability:
+	if contamination_percent > 0:
+		contamination_percent += growth_rate * (1 + contamination_percent)
+	elif rand_range(0.0, 1.0) >= probability:
 		contamination_percent = growth_rate
 		contamination.emitting = true
-
-	if not contamination_percent:
+	else:
 		return
 
 	update_particles()
+
+func interpolate(a, b, t):
+	return a + (b - a) * t
+
+func easeInQuart(x):
+	return x * x
 
 func enter():
 	call_deferred("move_pos", spawn_pos, center_pos, "entered")
@@ -63,7 +69,7 @@ func update_particles():
 func incinerate():
 	combustion.emitting = true
 	contamination.emitting = false
-	tween.interpolate_property(sprite, "modulate", Color.white, Color(0, 0, 0, 0), incinerate_time, Tween.TRANS_QUAD, Tween.EASE_IN)
+	tween.interpolate_property(sprite, "modulate", Color.white, Color(0, 0, 0, 0), incinerate_time, Tween.TRANS_QUINT, Tween.EASE_IN)
 	tween.interpolate_callback(self, move_duration, "emit_signal", "dead")
 	tween.start()
 
@@ -76,9 +82,7 @@ func stop_clean():
 	tween.stop(self)
 
 func move_pos(start, end, callback_signal):
-	var move_speed = move_duration
-	if contamination_percent > 0.5:
-		move_speed *= 2
-	tween.interpolate_property(self, "position", start, end, move_speed)
+	var move_speed = interpolate(move_duration, max_move_duration, contamination_percent)
+	tween.interpolate_property(self, "position", start, end, move_speed, Tween.TRANS_SINE, Tween.EASE_IN_OUT)
 	tween.interpolate_callback(self, move_speed, "emit_signal", callback_signal)
 	tween.start()

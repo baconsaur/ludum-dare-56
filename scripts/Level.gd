@@ -8,7 +8,7 @@ var level_complete = false
 var shift_length = 0
 var elapsed_time = 0
 
-onready var time_label = $LevelTime
+onready var time_label = $MarginContainer/LevelTime
 onready var shift_review = $LevelEnd
 onready var report_text = $LevelEnd/MarginContainer/Contents/BodyText
 onready var shift_time = shift_length
@@ -46,11 +46,18 @@ func reset_shift():
 	shift_review.visible = false
 	emit_signal("setup_complete")
 
-func display_review(review_data):
-	review_data["Shift time"] = format_seconds(elapsed_time)
-	var review_lines = []
+func display_review(review_data, next_shift, timeout, malfunction):
+	review_data["Time taken"] = format_seconds(elapsed_time)
+	var review_lines = ["Performance Review\n"]
+
 	for key in review_data:
 		review_lines.append("%s: %s" % [key, review_data[key]])
+
+	if next_shift % Globals.base_values.get("new_worker_interval") == 0:
+		review_lines.append("\nAlert: %s new workers have arrived" % Globals.base_values.get("worker_batch_size"))
+	
+	if malfunction:
+		review_lines.append("\nAlert: system malfunctions reported")
 	
 	report_text.text = "\n".join(review_lines)
 	

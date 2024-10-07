@@ -14,26 +14,31 @@ var human_queue : Array = []
 var human_index = 0
 var actions : Array = []
 var shift_count = 0
+var fluid_percent = 100
+var malfunction_shift = false
 
 onready var hud = $CanvasLayer
 onready var memo = $CanvasLayer/Memo
 onready var memo_body = $CanvasLayer/Memo/MarginContainer/Contents/BodyText
 onready var memo_button = $CanvasLayer/Memo/MarginContainer/Contents/Button
 onready var queue_size = $CanvasLayer/HUD/Stats/ShiftStats/QueueSize
-onready var shift_counter = $CanvasLayer/HUD/Stats/ShiftStats/ShiftCounter
 onready var action_container = $CanvasLayer/HUD/Actions
+onready var spray_button = $CanvasLayer/HUD/Actions/Row1/SprayButton
+onready var fluid_meter = $CanvasLayer/HUD/FluidMeter
 onready var humans = $Humans
 onready var shower = $Shower
 onready var anim_player = $AnimationPlayer
 onready var level_conditions = $LevelConditions
 onready var door_in = $DoorIn
 onready var door_out = $DoorOut
+onready var tween = $Tween
 
 # DEBUG
 onready var debug_stats = $CanvasLayer/HUD/Stats/DebugStats
 onready var contamination_level = $CanvasLayer/HUD/Stats/DebugStats/ContaminationLevel
 onready var population_count = $CanvasLayer/HUD/Stats/DebugStats/PopulationCount
 onready var level_count = $CanvasLayer/HUD/Stats/DebugStats/CurrentLevel
+onready var shift_counter = $CanvasLayer/HUD/Stats/DebugStats/ShiftCounter
 
 
 func _ready():
@@ -43,14 +48,11 @@ func _ready():
 	init_state()
 	load_level()
 
+
 #### SETUP ####
 func init_state():
+	add_human_batch()
 	debug_update_contamination()
-	debug_update_population()
-	for human in humans.get_children():
-		human.connect("exited", self, "next_human")
-		human.connect("entered", self, "human_entered")
-		human.connect("dead", self, "remove_human", [human])
 	
 	if OS.is_debug_build():
 		level_index = debug_level
@@ -70,15 +72,26 @@ func reject_human():
 	incinerate_human()
 
 func spray_human():
+	if fluid_meter.visible:
+		var time_to_empty = Globals.base_values["fluid_capacity"] * fluid_meter.value / 100
+		tween.interpolate_property(fluid_meter, "value", fluid_meter.value, 0, time_to_empty)
+		tween.interpolate_callback(self, time_to_empty, "disable_spray")
+		tween.start()
 	shower.emitting = true
 	disable_actions("SprayButton")
 	clean_human()
 
+func disable_spray():
+	spray_button.disabled = true
+	stop_spray()
+
 func stop_spray():
+	tween.stop_all()
 	shower.emitting = false
 	stop_clean()
 	enable_actions()
 ########################
+
 
 #### WORKER MANAGEMENT ####
 func reset_humans():
@@ -131,27 +144,41 @@ func remove_human(human):
 	if humans.get_child_count() > 0:
 		next_human()
 	else:
-		game_over()
+		game_over("humans_dead")
+
+func add_human_batch():
+	for i in range(Globals.base_values.get("worker_batch_size")):
+			add_human()
+	human_queue = humans.get_children()
+	debug_update_population()
+
+func add_human():
+	var human = human_obj.instance()
+	human.connect("exited", self, "next_human")
+	human.connect("entered", self, "human_entered")
+	human.connect("dead", self, "remove_human", [human])
+	humans.add_child(human)
 ###########################
 
 
 #### ENVIRONMENT ACTIONS ####
-func contaminate_human(human):
-	# TODO make this make sense
+func contaminate_human(human, chance=Globals.base_values["contamination_chance"]):
 	human.contaminate(
-		Globals.get_contamination_chance(contamination_percent),
-		Globals.base_values["spread_rate"]
+		chance,
+		Globals.base_values["growth_rate"]
 	)
 
 func spread_contamination():
 	if contamination_percent:
 		for human in humans.get_children():
-			contaminate_human(human)
+			if human.contamination_percent <= 0:
+				contaminate_human(human, contamination_percent)
 	recalculate_contamination()
-	debug_update_contamination()
 
 func check_malfunction():
-	if rand_range(0.4, 1.0) < contamination_percent:
+	if not malfunction_shift:
+		return
+	if rand_range(0, 1.0) < contamination_percent:
 		anim_player.play("Flicker")
 #############################
 
@@ -162,20 +189,28 @@ func shift_timeout():
 	shower.emitting = false
 	for i in range(human_index, human_queue.size()):
 		var human : Human = human_queue[i]
-		print(human.name)
 		contaminate_human(human)
-	end_shift()
+	end_shift(true)
 
-func end_shift():
+func end_shift(timeout=false):
+	malfunction_shift = false
 	anim_player.stop()
+	anim_player.set_current_animation("Tick")
+	anim_player.seek(0)
+	recalculate_contamination()
 	
+	var workers_processed = human_index
 	var review_data = {
-		"Shift": shift_count,
-		"Shift time": "",
-		"Workers processed": min(human_index + 1, human_queue.size()),
+		"Time taken": "",
+		"Workers processed": workers_processed,
 	}
-	# TODO replace with memo system
-	current_level.display_review(review_data)
+	if timeout:
+		review_data["Unprocessed workers"] = human_queue.size() - workers_processed
+	if fluid_meter.visible:
+		review_data["Fluid used"] = "%d%%" % (100 - fluid_meter.value)
+	malfunction_shift = contamination_percent >= Globals.base_values["malfunction_threshold"]
+
+	current_level.display_review(review_data, shift_count + 1, timeout, malfunction_shift)
 	current_level.level_complete = level_conditions.check_level_complete()
 
 	spread_contamination()
@@ -184,7 +219,13 @@ func start_shift():
 	shift_count += 1
 	update_shift()
 	
-	anim_player.play("Tick")
+	if shift_count % Globals.base_values.get("new_worker_interval") == 0:
+		add_human_batch()
+		recalculate_contamination()
+		
+	fluid_meter.value = 100
+	if malfunction_shift:
+		anim_player.play("Tick")
 	
 	reset_humans()
 	enter_human()
@@ -200,8 +241,13 @@ func load_level():
 	current_level.connect("tree_exited", self, "next_level")
 	current_level.connect("ready", self, "display_memo")
 
-	var level_script = Globals.level_data[level_index].get("script_name", "BaseLevel")
+	var level_data = Globals.level_data[level_index]
+	var level_script = level_data.get("script_name", "BaseLevel")
 	level_conditions.set_script(load("res://scripts/levels/%s.gd" % level_script))
+	if level_data.get("fluid_meter"):
+		fluid_meter.visible = true
+	else:
+		fluid_meter.visible = false
 
 	debug_update_level_count()
 
@@ -218,7 +264,7 @@ func setup_level():
 func next_level():
 	level_index += 1
 	if level_index >= Globals.level_data.size():
-		game_over()
+		game_over("complete")
 		return
 
 	load_level()
@@ -230,8 +276,17 @@ func set_level_actions(hide_actions):
 			if hide_action in action.name:
 				action.visible = false
 
-func game_over():
-	memo_body.text = Globals.game_over_text
+func game_over(reason):
+	var end_report = [
+		Globals.game_over_text[reason],
+		"\nShifts completed: %d" % shift_count,
+	]
+	if reason != "humans_dead":
+		end_report.append_array([
+			"Final population: %d" % population,
+			"Contamination: %.1f%%" % (contamination_percent * 100),
+		])
+	memo_body.text = '\n'.join(end_report)
 	memo_button.text = "Replay"
 	memo_button.disconnect("pressed", self, "setup_level")
 	memo_button.connect("pressed", get_tree(), "reload_current_scene")
@@ -248,6 +303,8 @@ func disable_actions(exclude=null):
 
 func enable_actions():
 	for action in actions:
+		if "Spray" in action.name and fluid_meter.value == 0:
+			continue
 		(action as Button).disabled = false
 
 func recalculate_contamination():
@@ -261,6 +318,8 @@ func recalculate_contamination():
 		contamination_percent = total_contam / valid_humans
 	else:
 		contamination_percent = 0
+
+	debug_update_contamination()
 
 func debug_update_contamination():
 	var display_format = "Contamination: %.1f%%"

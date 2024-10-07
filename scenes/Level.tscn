@@ -11,10 +11,18 @@ mouse_filter = 2
 theme = ExtResource( 2 )
 script = ExtResource( 4 )
 
-[node name="LevelTime" type="Label" parent="."]
-margin_left = 308.0
+[node name="MarginContainer" type="MarginContainer" parent="."]
 margin_right = 320.0
-margin_bottom = 10.0
+margin_bottom = 180.0
+mouse_filter = 2
+custom_constants/margin_right = 4
+custom_constants/margin_top = 4
+
+[node name="LevelTime" type="Label" parent="MarginContainer"]
+margin_left = 304.0
+margin_top = 4.0
+margin_right = 316.0
+margin_bottom = 14.0
 size_flags_horizontal = 8
 size_flags_vertical = 0
 text = "10"
@@ -22,14 +30,10 @@ text = "10"
 [node name="LevelEnd" parent="." instance=ExtResource( 1 )]
 visible = false
 
-[node name="Title" parent="LevelEnd/MarginContainer/Contents" index="0"]
-margin_left = 93.0
-margin_right = 194.0
-text = "Shift Performance"
-
-[node name="BodyText" parent="LevelEnd/MarginContainer/Contents" index="1"]
+[node name="BodyText" parent="LevelEnd/MarginContainer/Contents" index="0"]
 text = ""
 
+[connection signal="visibility_changed" from="LevelEnd/MarginContainer/Contents/BodyText" to="LevelEnd/MarginContainer/Contents/BodyText" method="visibility_changed"]
 [connection signal="pressed" from="LevelEnd/MarginContainer/Contents/Button" to="." method="reset_shift"]
 
 [editable path="LevelEnd"]
